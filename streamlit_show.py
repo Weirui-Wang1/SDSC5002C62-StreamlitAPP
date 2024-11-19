@@ -4,13 +4,14 @@ import numpy as np
 import pandas as pd
 import shap
 import matplotlib.pyplot as plt
-
+from sklearn.preprocessing import StandardScaler
 
 # Load the model
 try:
     model = joblib.load('XGBoost.pkl')
+    scaler = joblib.load('scaler.pkl')
 except FileNotFoundError:
-    st.error("Model file 'XGBoost.pkl' not found. Please ensure the file is in the correct directory.")
+    st.error("Model or scaler file not found. Please ensure the files are in the correct directory.")
     st.stop()
 
 # Define feature options
@@ -100,10 +101,13 @@ heart_reserve = 220 - age - thalach
 feature_values.extend([age_chol_interaction, thalach_trestbps_ratio, age_bp_ratio, heart_reserve])
 features = np.array([feature_values])
 
+# Standardize the features using the loaded scaler
+features_scaled = scaler.transform(features)
+
 if st.button("Predict"):
     # Predict class and probabilities
-    predicted_class = model.predict(features)[0]
-    predicted_proba = model.predict_proba(features)[0]
+    predicted_class = model.predict(features_scaled)[0]
+    predicted_proba = model.predict_proba(features_scaled)[0]
 
     # Display prediction results
     st.write(f"**Predicted Class:** {predicted_class}")

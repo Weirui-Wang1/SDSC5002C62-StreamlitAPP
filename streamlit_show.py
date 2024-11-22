@@ -4,7 +4,10 @@ import numpy as np
 import pandas as pd
 import shap
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
+
+from openai import OpenAI
+client = OpenAI(api_key='sk-xU154GlXJPiJt7dmU3OUtP9eUBJEkL5CSQvVdLbdXWy0UfFH', base_url="https://api.gpts.vin/v1")
+# client = OpenAI(api_key='sk-svcacct-yUj8UDhHgaDIUPaB2LmSqZ1aQA8Vn3B9NOmwcyQEmIsT3BlbkFJtT8zLkBndfFBzFD97Y3XflVcvvFTL2gNxPynllDaHZgA')
 
 # Load the model
 try:
@@ -110,28 +113,82 @@ if st.button("Predict"):
     predicted_proba = model.predict_proba(features_scaled)[0]
 
     # Display prediction results
-    st.write(f"**Predicted Class:** {predicted_class}")
-    st.write(f"**Prediction Probabilities:** {predicted_proba}")
+    class_text = "No Heart Disease" if predicted_class == 0 else "Heart Disease"
+
+    st.write(f"**Predicted Class:** {class_text}")
+    st.write(f"**Probability of No Heart Disease:** {predicted_proba[0]:.2f}")
+    st.write(f"**Probability of Heart Disease:** {predicted_proba[1]:.2f}")
 
     # Generate advice based on prediction results
     probability = predicted_proba[predicted_class] * 100
 
-    if predicted_class == 1:
-        advice = (
-            f"Based on our model, you are assessed to have a high risk of heart disease. "
-            f"The model estimates that your probability of developing heart disease is {probability:.1f}%. "
-            "While this figure serves as an approximation, it indicates that you may be at considerable risk. "
-            "I strongly recommend consulting a cardiologist at your earliest convenience for further evaluation "
-            "to ensure accurate diagnosis and appropriate treatment. "
-        )
-    else:
-        advice = (
-            f"Based on our model, you are assessed to have a low risk of heart disease. "
-            f"The model estimates that your probability of being free from heart disease is {probability:.1f}%. "
-            "Nevertheless, it remains crucial to maintain a healthy lifestyle.  "
-            "I recommend regular check-ups to monitor your cardiovascular health "
-            "and advise seeking medical attention promptly should you experience any symptoms. "
-        )
+
+    prompt = f"""
+    You are an experienced cardiologist. Based on the following patient's health data and the heart disease prediction result, please provide a detailed comprehensive diagnostic opinion, including potential health risks, recommended lifestyle changes, and possible treatment options.
+
+    - **Age**: 
+    {age}
+    - **Sex**: 
+    {'Female' if sex == 0 else 'Male'}
+    - **Chest Pain Type**: 
+    {cp_options[cp]}
+    - **Resting Blood Pressure (trestbps)**: 
+    {trestbps}
+     mmHg
+    - **Serum Cholesterol (chol)**: 
+    {chol}
+     mg/dl
+    - **Fasting Blood Sugar > 120 mg/dl (fbs)**: 
+    {'No' if fbs == 0 else 'Yes'}
+    - **Resting Electrocardiographic Results (restecg)**: 
+    {restecg_options[restecg]}
+    - **Maximum Heart Rate Achieved (thalach)**: 
+    {thalach}
+     bpm
+    - **Exercise Induced Angina (exang)**: 
+    {'No' if exang == 0 else 'Yes'}
+    - **ST Depression Induced by Exercise Relative to Rest (oldpeak)**: 
+    {oldpeak}
+    - **Slope of the Peak Exercise ST Segment (slope)**: 
+    {slope_options[slope]}
+    - **Number of Major Vessels Colored by Fluoroscopy (ca)**: 
+    {ca}
+    - **Thalassemia (thal)**: 
+    {thal_options[thal]}
+
+    **Predicted Probability of Heart Disease**: 
+    {100 - probability:.2f}
+    %
+
+    Based on the above information, assess the patient's cardiac health and provide specific recommendations.
+    """
+
+    print(prompt)
+
+    completion = client.chat.completions.create(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "user", "content": prompt}, ],
+    )
+
+    advice = completion.choices[0].message.content
+
+    # if predicted_class == 1:
+    #     advice = (
+    #         f"Based on our model, you are assessed to have a high risk of heart disease. "
+    #         f"The model estimates that your probability of developing heart disease is {probability:.1f}%. "
+    #         "While this figure serves as an approximation, it indicates that you may be at considerable risk. "
+    #         "I strongly recommend consulting a cardiologist at your earliest convenience for further evaluation "
+    #         "to ensure accurate diagnosis and appropriate treatment. "
+    #     )
+    # else:
+    #     advice = (
+    #         f"Based on our model, you are assessed to have a low risk of heart disease. "
+    #         f"The model estimates that your probability of being free from heart disease is {probability:.1f}%. "
+    #         "Nevertheless, it remains crucial to maintain a healthy lifestyle.  "
+    #         "I recommend regular check-ups to monitor your cardiovascular health "
+    #         "and advise seeking medical attention promptly should you experience any symptoms. "
+    #     )
 
     st.write(advice)
 

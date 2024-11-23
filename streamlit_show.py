@@ -190,7 +190,9 @@ if st.button("Predict"):
     #         "and advise seeking medical attention promptly should you experience any symptoms. "
     #     )
 
-    st.write(advice)
+    st.markdown(
+        f"<div style='padding: 10px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;'>{advice}</div>",
+        unsafe_allow_html=True)
 
     # Calculate SHAP values and display force plot
     explainer = shap.Explainer(model)

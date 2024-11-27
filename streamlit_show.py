@@ -6,7 +6,7 @@ import shap
 import matplotlib.pyplot as plt
 
 from openai import OpenAI
-client = OpenAI(api_key='sk-xU154GlXJPiJt7dmU3OUtP9eUBJEkL5CSQvVdLbdXWy0UfFH', base_url="https://api.gpts.vin/v1")
+client = OpenAI(api_key='sk-COO2IZN0hNb0LFdHsGOnXWalVmdxcENpLlOFFMLpGAGDGNrE', base_url="https://xiaoai.plus/v1")
 # client = OpenAI(api_key='sk-svcacct-yUj8UDhHgaDIUPaB2LmSqZ1aQA8Vn3B9NOmwcyQEmIsT3BlbkFJtT8zLkBndfFBzFD97Y3XflVcvvFTL2gNxPynllDaHZgA')
 
 # Load the model
